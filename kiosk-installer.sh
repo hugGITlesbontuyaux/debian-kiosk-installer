@@ -59,17 +59,15 @@ do
   chromium \
     --no-first-run \
     --start-maximized \
-    --window-position=0,0 \
-    --window-size=1024,768 \
+    --password-store=basic \
     --disable \
     --disable-translate \
     --disable-infobars \
     --disable-suggestions-service \
     --disable-save-password-bubble \
     --disable-session-crashed-bubble \
-    --password-store=basic \
     --disable-features=InfiniteSessionRestore \
-    --kiosk "https://neave.tv/"
+    --kiosk "https://play.playr.biz/"
   sleep 5
 done &
 EOF
