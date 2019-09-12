@@ -11,6 +11,7 @@ apt-get install \
     openbox \
     lightdm \
     locales \
+    xrdp \
     -y
 
 # dir
@@ -66,7 +67,8 @@ do
     --disable-suggestions-service \
     --disable-save-password-bubble \
     --disable-session-crashed-bubble \
-    --incognito \
+    --password-store=basic \
+    --disable-features=InfiniteSessionRestore \
     --kiosk "https://neave.tv/"
   sleep 5
 done &
