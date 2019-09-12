@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # be new
-apt-get update
+apt-get update && apt-get upgrade
 
 # get software
 apt-get install \
