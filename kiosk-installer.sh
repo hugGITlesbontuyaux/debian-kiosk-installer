@@ -1,21 +1,22 @@
 #!/bin/bash
 
-# be new
+# Add non-free drivers
+if [ -e "/etc/apt/source.list" ]; then
+  cp /etc/apt/source.list /etc/apt/source.list.backup
+fi
+cat >> /etc/apt/source.list << EOF
+# non-free drivers
+deb http://httpredir.debian.org/debian/ buster main contrib non-free
+EOF
+
+# Regenarate Source list
 apt-get update && apt-get upgrade
 
-# get software
-apt-get install \
-	unclutter \
-    xorg \
-    chromium \
-    openbox \
-    lightdm \
-    locales \
-    xrdp \
-    -y
+# Install non-free drivers
+apt-get install firmware-realtek firmware-misc-nonfree -y
 
-# dir
-mkdir -p /home/kiosk/.config/openbox
+# Install component
+apt-get install xorg lxde-core tightvncserver chromium unclutter xrdp -y
 
 # create group
 groupadd kiosk
@@ -26,50 +27,31 @@ id -u kiosk &>/dev/null || useradd -m kiosk -g kiosk -s /bin/bash
 # rights
 chown -R kiosk:kiosk /home/kiosk
 
-# remove virtual consoles
-if [ -e "/etc/X11/xorg.conf" ]; then
-  mv /etc/X11/xorg.conf /etc/X11/xorg.conf.backup
-fi
-cat > /etc/X11/xorg.conf << EOF
-Section "ServerFlags"
-    Option "DontVTSwitch" "true"
-EndSection
-EOF
-
-# create config
+# Config lightdm
 if [ -e "/etc/lightdm/lightdm.conf" ]; then
-  mv /etc/lightdm/lightdm.conf /etc/lightdm/lightdm.conf.backup
+  cp /etc/lightdm/lightdm.conf /etc/lightdm/lightdm.backup
 fi
 cat > /etc/lightdm/lightdm.conf << EOF
 [SeatDefaults]
 autologin-user=kiosk
+[VNCServer]
+enabled=true
+command=Xvnc
+port=5900
 EOF
 
-# create autostart
-if [ -e "/home/kiosk/.config/openbox/autostart" ]; then
-  mv /home/kiosk/.config/openbox/autostart /home/kiosk/.config/openbox/autostart.backup
+# Autostart
+if [ -e "/etc/xdg/lxsession/LXDE/autostart" ]; then
+  cp /etc/xdg/lxsession/LXDE/autostart /etc/xdg/lxsession/LXDE/autostart.backup
 fi
-cat > /home/kiosk/.config/openbox/autostart << EOF
-#!/bin/bash
-
-unclutter -idle 0.1 -grab -root &
-
-while :
-do
-  chromium \
-    --no-first-run \
-    --start-maximized \
-    --password-store=basic \
-    --disable \
-    --disable-translate \
-    --disable-infobars \
-    --disable-suggestions-service \
-    --disable-save-password-bubble \
-    --disable-session-crashed-bubble \
-    --disable-features=InfiniteSessionRestore \
-    --kiosk "https://play.playr.biz/"
-  sleep 5
-done &
+cat > /etc/xdg/lxsession/LXDE/autostart << EOF
+@lxpanel --profile LXDE
+@pcmanfm --desktop --profile LXDE
+# @xscreensaver -no-splash
+@chromium --kiosk http://play.playr.biz
 EOF
+
+# Desactivation du powersaving
+systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
 
 echo "Done!"
